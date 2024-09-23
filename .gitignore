@@ -123,6 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
+.pytorch
 .venv
 env/
 venv/
