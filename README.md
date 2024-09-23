@@ -87,3 +87,22 @@ so we will integrate both **Azure OpenAI API** and my **Custom Intent-based syst
 
 1. **To Handle Static Intents:** we will use custom `intents.json` file for predefined responses when intent is clear.
 2. **To handle Dynamic Response:** when the chatbot cannot confidently identify an intent, it will send the user's query to the Azure OpenAi API for a dynamic response.
+
+### Release 3
+
+now wi will create a complete Flask chatbot application with React frontend framework.
+
+- **Create the App Component**
+- **Create the React Chaticon Component**
+- **Create the React chatbox Component**
+- **App CSS**
+- **Flask Backend**
+
+First, we need to create a new Vite project with React
+
+```bash
+npm create vite@latest chatbot-frontend -- --template react
+cd chatbot-frontend
+npm install
+```
+
