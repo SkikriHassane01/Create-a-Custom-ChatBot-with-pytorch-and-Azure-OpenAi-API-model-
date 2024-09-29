@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
 import torch
-from transformers import AutoTokenizer
 import os
 from dotenv import load_dotenv
 import requests
@@ -8,9 +7,10 @@ from model import load_model
 from dataset import load_data
 from utils import encode_labels
 import random
+from flask_cors import CORS
 
-app = Flask(__name__, static_folder='../build', static_url_path='/')
-
+app = Flask(__name__, static_folder='../chatbot-frontend/dist', static_url_path='/')
+CORS(app)
 # Load environment variables
 load_dotenv()
 
