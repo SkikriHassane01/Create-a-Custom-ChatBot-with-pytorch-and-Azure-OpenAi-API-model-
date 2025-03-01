@@ -1,108 +1,194 @@
-# Creating a Chat Bot With PyTorch
+# Custom ChatBot with PyTorch and Azure OpenAI API Integration
 
-## What we will do
+## Project Overview
 
-we're going to create a chatbot framework and conversational model for a custom database that i will train it on, the custom db will be about me, like who i'm and what i can do also what is teh skills that i have, so this chat bot can be customize by anyone and integrate it in his portfolio.
+This project implements a hybrid chatbot that leverages both a custom-trained PyTorch model and the Azure OpenAI API. The system first attempts to classify user intents using a custom model, then falls back to the Azure OpenAI API for more complex queries. It features a responsive React frontend and a Flask backend, making it suitable for integration into personal websites, portfolios, or any application requiring a customized chatbot.
 
-## what is the first step
+## Features
 
-A chatbot framework needs a structure in which conversational intents are defined. one of the cleanest way is with JSON file, like this:
+- **Dual Intelligence System**: Combines custom intent classification with Azure OpenAI's advanced capabilities
+- **Intent-Based Responses**: Accurately identifies user intents from a customizable set of intents
+- **Confidence Threshold**: Intelligently routes queries to the most appropriate response system
+- **Responsive UI**: Clean, modern chat interface built with React
+- **Real-Time Communication**: Immediate response to user queries
+- **Markdown Support**: Bot responses can include formatted markdown text
+- **Mobile-Friendly Design**: Works well on both desktop and mobile devices
+- **Customizable**: Easily modify the intents and responses to suit your needs
 
-```JSON
+## Technical Architecture
+
+### Backend (Python/Flask)
+
+- **Intent Recognition**: Custom PyTorch model using DistilBERT for efficient text classification
+- **API Integration**: Seamless fallback to Azure OpenAI API for complex queries
+- **Web Server**: Flask application serving both the API endpoints and static frontend files
+- **Data Processing**: Utilities for encoding labels and processing training data
+
+### Frontend (React)
+
+- **Component-Based**: Modular UI with separate components for ChatBox and ChatIcon
+- **State Management**: React hooks for managing chat state and UI transitions
+- **Styling**: Custom CSS for a polished user experience
+- **Markdown Rendering**: Support for rich text formatting in bot responses
+
+## How It Works
+
+1. **Intent Recognition Flow**:
+   - User sends a message through the chat interface
+   - The message is sent to the Flask backend via API
+   - The backend processes the message using the custom PyTorch model
+   - If the model's confidence exceeds the threshold, a predefined response is returned
+   - If confidence is low, the query is forwarded to Azure OpenAI API
+
+2. **Model Training**:
+   - The custom model is trained on a JSON file containing intents, patterns, and responses
+   - Each intent has multiple example patterns and possible responses
+   - The training process converts text to tokens, then to numerical representations
+   - A DistilBERT model is fine-tuned for intent classification
+
+3. **API Fallback**:
+   - When the custom model cannot confidently classify an intent, the Azure OpenAI API is used
+   - This provides flexibility to handle a wide range of queries beyond the training data
+
+## Setup Instructions
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/custom-chatbot.git
+   cd custom-chatbot
+   ```
+
+2. **Set up the backend**:
+   ```bash
+   # Create a virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Create .env file with Azure OpenAI credentials
+   echo "API_KEY=your_azure_openai_api_key" > .env
+   echo "ENDPOINT=your_azure_openai_endpoint" >> .env
+   ```
+
+3. **Train the model**:
+   ```bash
+   python train.py
+   ```
+
+4. **Set up the frontend**:
+   ```bash
+   cd chatbot-frontend
+   npm install
+   ```
+
+5. **Run the application**:
+   ```bash
+   # In the root directory, start the backend
+   python app.py
+   
+   # In another terminal, start the frontend development server
+   cd chatbot-frontend
+   npm run dev
+   ```
+
+## Customization
+
+### Modifying Intents and Responses
+
+1. Edit the `chatbot-backend/Data/intents.json` file to add or modify intents
+2. Each intent should have:
+   - A unique tag
+   - Multiple example patterns (questions/inputs)
+   - Several response options (the bot will randomly select one)
+
+Example intent format:
+```json
 {
-    "intents": [
-        {"tag": "greeting",
-         "patterns": ["Hi", "How are you", "Is anyone there?", "Hello", "Good day"],
-         "responses": ["Hello, thanks for visiting", "Good to see you again", "Hi there, how can I help?"],
-         "context_set": ""
-        },
-        {"tag": "goodbye",
-         "patterns": ["Bye", "See you later", "Goodbye"],
-         "responses": ["See you later, thanks for visiting", "Have a nice day", "Bye! Come back again soon."]
-        },
-        {"tag": "thanks",
-         "patterns": ["Thanks", "Thank you", "That's helpful"],
-         "responses": ["Happy to help!", "Any time!", "My pleasure"]
-        }
-   ]
+  "tag": "greeting",
+  "patterns": [
+    "Hi", 
+    "Hello", 
+    "Hey there"
+  ],
+  "responses": [
+    "Hello! How can I help you today?",
+    "Hi there! What can I assist you with?"
+  ]
 }
 ```
 
-Each conversational contains:
-
-- **Tag:** unique name
-- **Patterns:** sentence patterns for our neural network text classifier
-- **responses:** one will be used as a response
-
-## Terminology and step by step to create this project
-
-1. **Tokenization**
-   - Input: "Is anyone there?"
-   - Output: `["Is", "anyone", "there", "?"]`
-2. **Lowercasing and Stemming**
-   - Process the tokens by converting to lowercase and then applying stemming (if necessary).
-   - Output remains: `["is", "anyone", "there", "?"]`
-3. **Removing Punctuation Characters**
-   - Exclude punctuation from tokens.
-   - Output: `["is", "anyone", "there"]`
-4. **Bag of Words**
-   - Convert the tokens into a numerical format known as a bag of words.
-   - Output Vector: `[0, 0, 0, 1, 0, 1, 0, 1]`
-
-### 1. Create the utils.py
-
-- Create the tokenize function
-
-```python
-tokenize function split sentence into array of words/tokens
-a token can be a word or punctuation character, or number
-```
-
-- Create the stem function
-
-```python
-stemming = find the root form of the word
-    examples:
-    words = ["organize", "organizes", "organizing"]
-    words = [stem(w) for w in words]
-    -> ["organ", "organ", "organ"]
-```
-
-- create the bag_of_words function
-
-```python
-return bag of words array:
-    1 for each known word that exists in the sentence, 0 otherwise
-    example:
-    sentence = ["hello", "how", "are", "you"]
-    words = ["hi", "hello", "I", "you", "bye", "thank", "cool"]
-    bag   = [  0 ,    1 ,    0 ,   1 ,    0 ,    0 ,      0]
-```
-
-### Release 2
-
-after noting that our chatbot is very week and he can handle just a few question we will add some pre trained model and also adding the Azure openAI API for a dynamic response.
-
-so we will integrate both **Azure OpenAI API** and my **Custom Intent-based system**
-
-1. **To Handle Static Intents:** we will use custom `intents.json` file for predefined responses when intent is clear.
-2. **To handle Dynamic Response:** when the chatbot cannot confidently identify an intent, it will send the user's query to the Azure OpenAi API for a dynamic response.
-
-### Release 3
-
-now wi will create a complete Flask chatbot application with React frontend framework.
-
-- **Create the App Component**
-- **Create the React Chaticon Component**
-- **Create the React chatbox Component**
-- **App CSS**
-- **Flask Backend**
-
-First, we need to create a new Vite project with React
-
+3. After modifying intents, retrain the model:
 ```bash
-npm create vite@latest chatbot-frontend -- --template react
-cd chatbot-frontend
-npm install
+python train.py
 ```
 
+### Styling the Chat Interface
+
+- Modify `chatbot-frontend/src/components/ChatBox/BoxStyle.css` and `chatbot-frontend/src/components/ChatIcon/IconStyle.css` to match your website's design
+
+## Deployment
+
+### Backend Deployment
+
+The project is configured for easy deployment to platforms like Heroku:
+- `runtime.txt` specifies Python version
+- `requirements.txt` lists all dependencies
+
+### Frontend Deployment
+
+- Build the frontend for production:
+```bash
+cd chatbot-frontend
+npm run build
+```
+- The Flask app is configured to serve the built frontend files from the `chatbot-frontend/dist` directory
+
+## Dependencies
+
+### Backend
+- Flask
+- PyTorch
+- Transformers (Hugging Face)
+- scikit-learn
+- dotenv
+- requests
+
+### Frontend
+- React
+- Marked (for Markdown rendering)
+- Vite (build tool)
+
+## Project Structure
+
+```
+├── app.py                       # Main Flask application
+├── azure_api_bot.py             # Azure OpenAI API integration
+├── chatbot-backend/             # Backend code
+│   ├── Data/                    # Training data
+│   │   └── intents.json         # Intent definitions
+│   ├── dataset.py               # Data loading utilities
+│   ├── main.py                  # Backend server
+│   ├── model.py                 # PyTorch model definition
+│   └── utils.py                 # Utility functions
+├── chatbot-frontend/            # React frontend
+│   ├── public/                  # Static files
+│   └── src/                     # React components
+│       ├── components/          # UI components
+│       │   ├── ChatBox/         # Chat interface
+│       │   └── ChatIcon/        # Chat button
+│       ├── App.jsx              # Main React component
+│       └── main.jsx             # React entry point
+├── custom_bot.py                # Standalone bot implementation
+├── train.py                     # Model training script
+└── requirements.txt             # Python dependencies
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
