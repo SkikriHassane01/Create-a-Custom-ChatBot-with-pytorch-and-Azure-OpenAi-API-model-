@@ -4,6 +4,7 @@
 
 This project implements a hybrid chatbot that leverages both a custom-trained PyTorch model and the Azure OpenAI API. The system first attempts to classify user intents using a custom model, then falls back to the Azure OpenAI API for more complex queries. It features a responsive React frontend and a Flask backend, making it suitable for integration into personal websites, portfolios, or any application requiring a customized chatbot.
 
+![](https://aunoa.ai/wp-content/uploads/2024/05/tipos-de-chatbots.webp)
 ## Features
 
 - **Dual Intelligence System**: Combines custom intent classification with Azure OpenAI's advanced capabilities
